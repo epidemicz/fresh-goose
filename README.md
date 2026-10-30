@@ -48,10 +48,11 @@ grammar does not scope them either, and inventing scopes would diverge from it.
 ## CI
 
 - `ci.yml` (push/PR): validates `package.json` against the Fresh schema, then
-  installs the pinned Goose release (`GOOSE_VERSION v2026.3`) and runs
-  `goose check`, `goose format --check`, and `goose run` (stdout-compared) on
-  `examples/hello.goose`. Fresh packs ship no build artifacts — install is a
-  git clone — so CI is validation-only.
+  builds Goose from a pinned upstream commit (`GOOSE_SHA` — no release yet
+  contains `goose format`) and runs `goose check`, `goose format --check`,
+  and `goose run` (stdout-compared) on `examples/hello.goose`. Fresh packs
+  ship no build artifacts — install is a git clone — so CI is
+  validation-only.
 - `nightly.yml` (scheduled, notify-only): builds `goose` from upstream `master`,
   re-runs `check` + `format --check`, and diffs the upstream
   `vscode/syntaxes/goose.tmLanguage.json` keyword/builtin sets against the

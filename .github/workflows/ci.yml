@@ -1,8 +1,10 @@
 name: CI
 on: [push, pull_request]
 env:
-  GOOSE_VERSION: v2026.3
-  GOOSE_SHA256: 06ac30284338269d3996d457412bf4f2b47c1f9a5601de65b6317187fe78d5c9
+  # Pinned upstream commit: no release yet contains `goose format`
+  # (it landed 2026-10-25, after v2026.3). Bump to a newer SHA, or back
+  # to a release tarball once a release ships the formatter.
+  GOOSE_SHA: 0357b1c2e261fa0680008e79d6879f9ccc7aedb9
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -12,14 +14,16 @@ jobs:
       - run: ./validate.sh
   goose:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Install Goose
+      - name: Build Goose
         run: |
-          curl -sSL -o goose.tar.gz "https://github.com/aardappel/goose/releases/download/${GOOSE_VERSION}/goose-${GOOSE_VERSION}-linux-x64.tar.gz"
-          echo "${GOOSE_SHA256}  goose.tar.gz" | sha256sum -c -
-          tar -xzf goose.tar.gz
-          echo "$PWD/goose-${GOOSE_VERSION}-linux-x64" >> "$GITHUB_PATH"
+          git clone https://github.com/aardappel/goose.git /tmp/goose-src
+          git -C /tmp/goose-src checkout "${GOOSE_SHA}"
+          cmake -S /tmp/goose-src -B /tmp/goose-src/build -DCMAKE_BUILD_TYPE=Release -DGOOSE_BUILTIN_LIBS=none
+          cmake --build /tmp/goose-src/build --config Release --parallel
+          echo "/tmp/goose-src/build" >> "$GITHUB_PATH"
       - run: goose version
       - run: goose check examples/hello.goose
       - run: goose format --check examples/hello.goose
