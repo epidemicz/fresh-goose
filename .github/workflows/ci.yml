@@ -1,0 +1,29 @@
+name: CI
+on: [push, pull_request]
+env:
+  GOOSE_VERSION: v2026.3
+  GOOSE_SHA256: 06ac30284338269d3996d457412bf4f2b47c1f9a5601de65b6317187fe78d5c9
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --break-system-packages jsonschema
+      - run: ./validate.sh
+  goose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Goose
+        run: |
+          curl -sSL -o goose.tar.gz "https://github.com/aardappel/goose/releases/download/${GOOSE_VERSION}/goose-${GOOSE_VERSION}-linux-x64.tar.gz"
+          echo "${GOOSE_SHA256}  goose.tar.gz" | sha256sum -c -
+          tar -xzf goose.tar.gz
+          echo "$PWD/goose-${GOOSE_VERSION}-linux-x64" >> "$GITHUB_PATH"
+      - run: goose version
+      - run: goose check examples/hello.goose
+      - run: goose format --check examples/hello.goose
+      - name: Run example
+        run: |
+          command -v cc || (sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc)
+          test "$(goose run examples/hello.goose)" = $'hello, goose\nanswer=42 mask=255\nthe answer\nfor 0 count=1\nfor 1 count=2\nfor 2 count=3\nbang\ndone'

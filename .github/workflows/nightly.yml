@@ -1,0 +1,45 @@
+name: Nightly
+on:
+  schedule: [{ cron: "17 6 * * *" }]
+  workflow_dispatch:
+permissions: { contents: read }
+jobs:
+  upstream-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build goose from main
+        run: |
+          git clone --depth 1 https://github.com/aardappel/goose.git /tmp/goose-main
+          cmake -S /tmp/goose-main -B /tmp/goose-main/build -DCMAKE_BUILD_TYPE=Release -DGOOSE_BUILTIN_LIBS=none
+          cmake --build /tmp/goose-main/build --config Release --parallel
+          echo "/tmp/goose-main/build" >> "$GITHUB_PATH"
+      - run: goose version
+      - run: goose check examples/hello.goose
+      - run: goose format --check examples/hello.goose
+      - name: Grammar drift check
+        run: |
+          curl -sSL -o /tmp/upstream-tm.json https://raw.githubusercontent.com/aardappel/goose/master/vscode/syntaxes/goose.tmLanguage.json
+          python3 - <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          upstream = json.load(open('/tmp/upstream-tm.json'))
+          ours = Path('grammars/goose.sublime-syntax').read_text()
+          pats = [p.get('match', '') for p in upstream['patterns']]
+          def alts(idx_sub):
+              pat = next(p for p in pats if idx_sub in p)
+              return set(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', pat))
+          drift = []
+          for scope, needle in [('storage.type', 'bool|varint'), ('keyword.control', 'guard|defer'),
+                                ('keyword.other', 'import|namespace'), ('storage.modifier', 'export|extern')]:
+              new = alts(needle) - set(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', ours))
+              if new: drift.append(f'{scope}: upstream adds {sorted(new)} missing from our grammar')
+          if '\\broot\\b' in pats[2] and 'root' not in ours:
+              drift.append('storage.modifier: upstream root-struct rule missing from our grammar')
+          new_fn = alts('hardware_threads') - set(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', ours))
+          if new_fn: drift.append(f'support.function: upstream adds {sorted(new_fn)} missing from our grammar')
+          if drift:
+              print('DRIFT DETECTED:'); [print(' -', d) for d in drift]; sys.exit(1)
+          print('No grammar drift vs goose main')
+          PY

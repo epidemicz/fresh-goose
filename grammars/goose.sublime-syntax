@@ -1,0 +1,105 @@
+%YAML 1.2
+---
+name: Goose
+scope: source.goose
+file_extensions: [goose]
+
+contexts:
+  main:
+    - include: comments
+    - include: strings
+    - match: '\broot\b(?=\s+struct\b)'
+      scope: storage.modifier.goose
+    - include: declarations
+    - match: '\b(?:bool|varint|[iu](?:8|16|32|64)|f(?:32|64))\b'
+      scope: storage.type.goose
+    - match: '\b(?:true|false|null)\b'
+      scope: constant.language.goose
+    - match: '\bself\b'
+      scope: variable.language.goose
+    - match: '\b(?:if|else|while|for|in|loop|block|guard|defer|match|return|break|continue)\b'
+      scope: keyword.control.goose
+    - match: '\b(?:import|namespace|as)\b'
+      scope: keyword.other.goose
+    - match: '\b(?:struct|enum|type|fn|thread_fn|let|var|const)\b'
+      scope: storage.type.goose
+    - match: '\b(?:export|extern|simd|recursive|pad|reusable)\b'
+      scope: storage.modifier.goose
+    - include: numbers
+    - match: '\b(?:print|str|format|assert|abort|exit|hardware_threads|thread_spawn|thread_spawn_contained|thread_wait|qput|qget|qpoll|qlimit|default|copy|move_from|to_bytes|bytes_of|from_bytes|embed_shader|embed_file|index_of|range_index|check_length|push|append|pop|pop_n|resize|clear|alloc_index|alloc_ref|free|alloc_slice|realloc_slice|free_slice)\b(?=\s*[<(])'
+      scope: support.function.goose
+    - match: '(?<=\.)\b(?:len|cap)\b'
+      scope: support.variable.property.goose
+    - match: '\b[A-Za-z_][A-Za-z0-9_]*(?=\s*::)'
+      scope: entity.name.namespace.goose
+    - match: '\b[A-Za-z_][A-Za-z0-9_]*(?=\s*\()'
+      scope: entity.name.function.goose
+    - match: '\b[A-Z][A-Z0-9_]*\b'
+      scope: constant.other.goose
+    - match: '\b[A-Z][A-Za-z0-9_]*\b'
+      scope: entity.name.type.goose
+    - match: '\.==|\.!=|\.=|\.\.|::|->|=>|<<=?|>>=?|[+*/%=&|^!<>-]=?|[?~]'
+      scope: keyword.operator.goose
+    - match: '[{}\[\]()]'
+      scope: punctuation.section.goose
+    - match: '[.,;:]'
+      scope: punctuation.separator.goose
+  comments:
+    - match: '//'
+      push:
+        - meta_scope: comment.line.double-slash.goose
+        - match: '$'
+          pop: true
+    - include: block-comment
+  block-comment:
+    - match: '/\*'
+      push:
+        - meta_scope: comment.block.goose
+        - match: '\*/'
+          pop: true
+        - include: block-comment
+  strings:
+    - match: '"""'
+      push:
+        - meta_scope: string.quoted.triple.goose
+        - match: '"""'
+          pop: true
+    - match: '"'
+      push:
+        - meta_scope: string.quoted.double.goose
+        - match: '"|$'
+          pop: true
+        - include: escapes
+    - match: ''''
+      push:
+        - meta_scope: string.quoted.single.goose
+        - match: '''|$'
+          pop: true
+        - include: escapes
+  escapes:
+    - match: '\\(?:[ntr0\\"'']|x[0-9a-fA-F]{2})'
+      scope: constant.character.escape.goose
+    - match: '\\.'
+      scope: invalid.illegal.escape.goose
+  declarations:
+    - match: '\b(fn|thread_fn)\s+((?:::)?(?:[A-Za-z_][A-Za-z0-9_]*::)*[A-Za-z_][A-Za-z0-9_]*)'
+      captures:
+        1: storage.type.function.goose
+        2: entity.name.function.goose
+    - match: '\b(struct|enum|type)\s+((?:::)?(?:[A-Za-z_][A-Za-z0-9_]*::)*[A-Za-z_][A-Za-z0-9_]*)'
+      captures:
+        1: storage.type.goose
+        2: entity.name.type.goose
+    - match: '\b(namespace)\s+([A-Za-z_][A-Za-z0-9_]*)'
+      captures:
+        1: keyword.other.goose
+        2: entity.name.namespace.goose
+  numbers:
+    - match: '\b0[xX][0-9a-fA-F]+(?:\.[0-9a-fA-F]+)?[pP][+-]?[0-9]+\b'
+      scope: constant.numeric.float.hex.goose
+    - match: '\b0[xX][0-9a-fA-F]+\b'
+      scope: constant.numeric.integer.hex.goose
+    - match: '\b[0-9]+(?:\.[0-9]+(?:[eE][+-]?[0-9]+)?|[eE][+-]?[0-9]+)\b'
+      scope: constant.numeric.float.goose
+    - match: '\b[0-9]+\b'
+      scope: constant.numeric.integer.goose

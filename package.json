@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sinelaw/fresh/main/crates/fresh-editor/plugins/schemas/package.schema.json",
+  "name": "goose",
+  "version": "0.1.0",
+  "description": "Goose language support for Fresh - syntax highlighting, LSP and formatting for .goose files",
+  "type": "language",
+  "author": "Timothy Zenner",
+  "license": "MIT",
+  "repository": "https://github.com/epidemicz/fresh-goose",
+  "keywords": ["goose", "systems-programming"],
+  "fresh": {
+    "grammar": { "file": "grammars/goose.sublime-syntax", "extensions": ["goose"] },
+    "language": {
+      "commentPrefix": "//",
+      "blockCommentStart": "/*",
+      "blockCommentEnd": "*/",
+      "tabSize": 4,
+      "autoIndent": true,
+      "formatter": { "command": "goose", "args": ["format"] }
+    },
+    "lsp": { "command": "goose", "args": ["lsp"], "autoStart": true }
+  }
+}
