@@ -26,7 +26,7 @@ contexts:
     - match: '\b(?:export|extern|simd|recursive|pad|reusable)\b'
       scope: storage.modifier.goose
     - include: numbers
-    - match: '\b(?:print|str|format|assert|abort|exit|hardware_threads|thread_spawn|thread_spawn_contained|thread_wait|qput|qget|qpoll|qlimit|default|copy|move_from|to_bytes|bytes_of|from_bytes|embed_shader|embed_file|index_of|range_index|check_length|push|append|pop|pop_n|resize|clear|alloc_index|alloc_ref|free|alloc_slice|realloc_slice|free_slice)\b(?=\s*[<(])'
+    - match: '\b(?:print|str|format|assert|abort|exit|hardware_threads|thread_spawn|thread_spawn_contained|thread_wait|qput|qget|qpoll|qlimit|default|copy|move_from|to_bytes|bytes_of|from_bytes|embed_shader|embed_file|src_file|src_line|index_of|range_index|check_length|push|append|pop|pop_n|resize|clear|alloc_index|alloc_ref|free|alloc_slice|realloc_slice|free_slice)\b(?=\s*[<(])'
       scope: support.function.goose
     - match: '(?<=\.)\b(?:len|cap)\b'
       scope: support.variable.property.goose
