@@ -10,6 +10,8 @@ contexts:
     - include: strings
     - match: '\broot\b(?=\s+struct\b)'
       scope: storage.modifier.goose
+    - match: '\bdeprecated\b(?=\s+("[^"]*"\s+)?(checkfree|inline|simd|recursive|export|extern|fn|thread_fn)\b)'
+      scope: storage.modifier.goose
     - include: declarations
     - match: '\b(?:bool|varint|[iu](?:8|16|32|64)|f(?:32|64))\b'
       scope: storage.type.goose
@@ -90,16 +92,22 @@ contexts:
       captures:
         1: storage.type.goose
         2: entity.name.type.goose
+    - match: '\b(namespace)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(=)\s*([A-Za-z_][A-Za-z0-9_]*)'
+      captures:
+        1: keyword.other.goose
+        2: entity.name.namespace.goose
+        3: keyword.operator.goose
+        4: entity.name.namespace.goose
     - match: '\b(namespace)\s+([A-Za-z_][A-Za-z0-9_]*)'
       captures:
         1: keyword.other.goose
         2: entity.name.namespace.goose
   numbers:
-    - match: '\b0[xX][0-9a-fA-F]+(?:\.[0-9a-fA-F]+)?[pP][+-]?[0-9]+\b'
+    - match: '\b0[xX][0-9a-fA-F]+(?:_[0-9a-fA-F]+)*(?:\.[0-9a-fA-F]+(?:_[0-9a-fA-F]+)*)?[pP][+-]?[0-9]+(?:_[0-9]+)*'
       scope: constant.numeric.float.hex.goose
-    - match: '\b0[xX][0-9a-fA-F]+\b'
+    - match: '\b0[xX][0-9a-fA-F]+(?:_[0-9a-fA-F]+)*'
       scope: constant.numeric.integer.hex.goose
-    - match: '\b[0-9]+(?:\.[0-9]+(?:[eE][+-]?[0-9]+)?|[eE][+-]?[0-9]+)\b'
+    - match: '\b[0-9]+(?:_[0-9]+)*(?:\.[0-9]+(?:_[0-9]+)*(?:[eE][+-]?[0-9]+(?:_[0-9]+)*)?|[eE][+-]?[0-9]+(?:_[0-9]+)*)'
       scope: constant.numeric.float.goose
-    - match: '\b[0-9]+\b'
+    - match: '\b[0-9]+(?:_[0-9]+)*'
       scope: constant.numeric.integer.goose
